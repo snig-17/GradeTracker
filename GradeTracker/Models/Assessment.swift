@@ -1,17 +1,9 @@
-//
-//  Assessment.swift
-//  GradeTracker
-//
-//  Created by Snigdha Tiwari  on 26/08/2025.
-//
-
-import Foundation
 import SwiftData
+import Foundation
 
 @Model
 class Assessment {
-    @Attribute(.unique)
-    var id: UUID
+    @Attribute(.unique) var id: UUID
     var name: String
     var type: AssessmentType
     var weighting: Double
@@ -24,35 +16,32 @@ class Assessment {
     var feedback: String
     var notes: String
     
-    // MARK: - computed properties
-    var letterGrade: String {
-        return GradeConverter.percentageToLetterGrade(percentage: percentage, system: .uk)
-    }
     var isOverdue: Bool {
         guard let dueDate = dueDate else { return false }
         return !isCompleted && Date() > dueDate
     }
+    
     var daysUntilDue: Int? {
         guard let dueDate = dueDate else { return nil }
         return Calendar.current.dateComponents([.day], from: Date(), to: dueDate).day
     }
     
-    init(id: UUID, name: String, type: AssessmentType, weighting: Double, percentage: Double, maxMarks: Double, achievedMarks: Double, dueDate: Date? = nil, submissionDate: Date? = nil, isCompleted: Bool, feedback: String, notes: String) {
-        self.id = id
+    init(name: String, type: AssessmentType, weighting: Double, dueDate: Date? = nil) {
+        self.id = UUID()
         self.name = name
         self.type = type
         self.weighting = weighting
-        self.percentage = percentage
-        self.maxMarks = maxMarks
-        self.achievedMarks = achievedMarks
+        self.percentage = 0.0
+        self.maxMarks = 100.0
+        self.achievedMarks = 0.0
         self.dueDate = dueDate
-        self.submissionDate = submissionDate
-        self.isCompleted = isCompleted
-        self.feedback = feedback
-        self.notes = notes
+        self.isCompleted = false
+        self.feedback = ""
+        self.notes = ""
     }
 }
-enum AssessmentType: String, CaseIterable, Codeable {
+
+enum AssessmentType: String, CaseIterable, Codable {
     case exam = "Exam"
     case coursework = "Coursework"
     case essay = "Essay"
@@ -74,7 +63,6 @@ enum AssessmentType: String, CaseIterable, Codeable {
         case .participation: return "hand.raised"
         case .quiz: return "questionmark.circle"
         case .dissertation: return "book.closed"
-        
         }
     }
 }
