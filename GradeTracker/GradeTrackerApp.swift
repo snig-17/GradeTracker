@@ -12,7 +12,10 @@ import SwiftData
 struct GradeTrackerApp: App {
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([
-            Item.self,
+            Student.self,
+            AcademicYear.self,
+            Module.self,
+            Assessment.self
         ])
         let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
 
@@ -30,3 +33,4 @@ struct GradeTrackerApp: App {
         .modelContainer(sharedModelContainer)
     }
 }
+
