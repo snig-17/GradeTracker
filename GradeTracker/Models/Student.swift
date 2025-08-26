@@ -21,6 +21,30 @@ class Student {
     var academicYears: [AcademicYear]
     var createdDate: Date
     
+    // MARK: - computed properties
+    
+    var overallAverage: Double {
+        let validYears = academicYears.filter { $0.weightingMultiplier > 0 }
+        guard !validYears.isEmpty else {
+            return 0.0
+        }
+        let totalWeightedGrades = validYears.reduce(0.0) { sum, year in
+            return sum + (year.yearAverage * year.weightingMultiplier)
+        }
+        let totalWeighting = validYears.reduce(0.0) {$0 + $1.weightingMultiplier}
+        
+        return totalWeighting > 0 ? totalWeightedGrades / totalWeighting : 0.0
+    }
+    
+    var degreeClassification: String {
+        switch systemType {
+        case .uk:
+            return UKGradeCalculator.getClassification(from: overallAverage
+        case .us:
+            return USGradeCalculator.getGPALetter(from: overallAverage)
+    }
+}
+    
     init(id: UUID, studentNumber: String, university: String, course: String, systemType: GradingSystem, startYear: Int, expectedGraduation: Int, academicYears: [AcademicYear], createdDate: Date) {
         self.id = id
         self.studentNumber = studentNumber
@@ -31,5 +55,14 @@ class Student {
         self.expectedGraduation = expectedGraduation
         self.academicYears = academicYears
         self.createdDate = createdDate
+    }
+}
+
+enum GradingSystem: String, CaseIterable, Codable {
+    case uk = "UK System"
+    case us = "US System"
+    
+    var displayName: String {
+        rawValue
     }
 }
