@@ -64,8 +64,8 @@ struct ModulesView: View {
                 )
                 
                 // Module Statistics Cards
-                if let student = currentStudent {
-                    ModuleStatsSection(student: student, filteredModules: filteredModules)
+                if currentStudent != nil {
+                    ModuleStatsSection(modules: filteredModules)
                         .padding(.horizontal)
                         .padding(.top)
                 }
