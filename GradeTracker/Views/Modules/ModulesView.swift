@@ -60,12 +60,11 @@ struct ModulesView: View {
                     selectedSemester: $selectedSemester,
                     showingFilters: $showingFilters,
                     availableSemesters: availableSemesters
-                    
                 )
                 
                 // Module Statistics Cards
-                if let student = currentStudent {
-                    ModuleStatsSection(student: student, filteredModules: filteredModules)
+                if currentStudent != nil {
+                    ModuleStatsSection(modules: filteredModules)
                         .padding(.horizontal)
                         .padding(.top)
                 }
