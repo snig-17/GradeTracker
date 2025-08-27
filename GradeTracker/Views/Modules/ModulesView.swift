@@ -60,7 +60,6 @@ struct ModulesView: View {
                     selectedSemester: $selectedSemester,
                     showingFilters: $showingFilters,
                     availableSemesters: availableSemesters
-                    
                 )
                 
                 // Module Statistics Cards
