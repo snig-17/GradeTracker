@@ -128,7 +128,7 @@ enum ChartTimeframe: String, CaseIterable {
 
 struct GradeProgressChart: View {
     let data: [GradeDataPoint]
-    let systemType: GradingSystem
+    let systemType: GradeSystem
     let timeframe: ChartTimeframe
     
     var body: some View {
@@ -216,7 +216,7 @@ struct EmptyChartView: View {
 }
 
 #Preview {
-    ProgressChartSection(student: Student.sampleStudent)
+    ProgressChartSection(student: Student.createSampleStudent())
         .padding()
         .background(Color(.systemGroupedBackground))
 }

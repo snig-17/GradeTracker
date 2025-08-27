@@ -142,7 +142,7 @@ struct ShowMoreModulesButton: View {
 }
 
 #Preview {
-    CurrentModulesSection(student: Student.sampleStudent)
+    CurrentModulesSection(student: Student.createSampleStudent())
         .padding()
         .background(Color(.systemGroupedBackground))
 }

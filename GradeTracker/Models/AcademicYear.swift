@@ -16,15 +16,17 @@ class AcademicYear {
     var endDate: Date
     var weightingMultiplier: Double
     var isActive: Bool
+    var level: Int // Academic year level (1, 2, 3, etc.)
     @Relationship(deleteRule: .cascade) var modules: [Module]
     var student: Student?
     
-    init(name: String, startDate: Date, endDate: Date, weightingMultiplier: Double, isActive: Bool = false) {
+    init(name: String, startDate: Date, endDate: Date, weightingMultiplier: Double, level: Int = 1, isActive: Bool = false) {
         self.id = UUID()
         self.name = name
         self.startDate = startDate
         self.endDate = endDate
         self.weightingMultiplier = weightingMultiplier
+        self.level = level
         self.isActive = isActive
         self.modules = []
     }
