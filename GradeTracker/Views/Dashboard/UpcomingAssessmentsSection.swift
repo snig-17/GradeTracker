@@ -16,11 +16,11 @@ struct UpcomingAssessmentsSection: View {
             .flatMap { year in
                 year.modules.flatMap { module in
                     module.assessments
-                        .filter { !$0.isCompleted && $0.dueDate != nil }
+                        .filter { !$0.isCompleted }
                         .map { AssessmentWithModule(assessment: $0, module: module) }
                 }
             }
-            .sorted { ($0.assessment.dueDate ?? Date.distantFuture) < ($1.assessment.dueDate ?? Date.distantFuture) }
+            .sorted { $0.assessment.dueDate < $1.assessment.dueDate }
     }
     
     private var displayedAssessments: [AssessmentWithModule] {
@@ -154,7 +154,7 @@ struct ShowMoreAssessmentsButton: View {
 }
 
 #Preview {
-    UpcomingAssessmentsSection(student: Student.sampleStudent)
+    UpcomingAssessmentsSection(student: Student.createSampleStudent())
         .padding()
         .background(Color(.systemGroupedBackground))
 }

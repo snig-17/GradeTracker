@@ -22,10 +22,11 @@ class Module {
     var colorHex: String
     var gradeSystem: GradeSystem
     var isCompleted: Bool
+    var isCore: Bool // Whether this is a core module
     @Relationship(deleteRule: .cascade) var assessments: [Assessment]
     var academicYearRef: AcademicYear?
     
-    init(name: String, code: String, credits: Int, semester: String, academicYear: String, lecturer: String = "", description: String = "", colorHex: String = "#007AFF", gradeSystem: GradeSystem = .uk, isCompleted: Bool = false) {
+    init(name: String, code: String, credits: Int, semester: String, academicYear: String, lecturer: String = "", description: String = "", colorHex: String = "#007AFF", gradeSystem: GradeSystem = .uk, isCompleted: Bool = false, isCore: Bool = false) {
         self.id = UUID()
         self.name = name
         self.code = code
@@ -37,23 +38,24 @@ class Module {
         self.colorHex = colorHex
         self.gradeSystem = gradeSystem
         self.isCompleted = isCompleted
+        self.isCore = isCore
         self.assessments = []
     }
     
     // Computed property for current grade
     var currentGrade: Double? {
-        let completedAssessments = assessments.compactMap { $0.grade }
+        let completedAssessments = assessments.filter { $0.grade != nil }
         guard !completedAssessments.isEmpty else { return nil }
         
-        let totalWeighting = assessments.filter { $0.grade != nil }.reduce(0) { $0 + $1.weighting }
-        guard totalWeighting > 0 else { return nil }
+        let completedWeighting = completedAssessments.reduce(0) { $0 + $1.weighting }
+        guard completedWeighting > 0 else { return nil }
         
-        let weightedSum = assessments.compactMap { assessment in
-            guard let grade = assessment.grade else { return nil }
-            return grade * (assessment.weighting / 100.0)
-        }.reduce(0, +)
+        let weightedSum = completedAssessments.reduce(0) { sum, assessment in
+            return sum + (assessment.grade! * (assessment.weighting / 100.0))
+        }
         
-        return (weightedSum / totalWeighting) * 100
+        // Return the weighted average of completed assessments
+        return (weightedSum / (completedWeighting / 100.0))
     }
     
     // Computed property for completion status
@@ -86,5 +88,22 @@ class Module {
     // Computed property for overdue assessments
     var overdueAssessments: [Assessment] {
         return assessments.filter { !$0.isCompleted && $0.dueDate < Date() }
+    }
+    
+    // Computed property for color (returns hex string converted to color)
+    var color: String {
+        return colorHex // Return hex string for use in Color(hex:) extension
+    }
+    
+    // Computed property for final grade (uses currentGrade)
+    var finalGrade: Double {
+        return currentGrade ?? 0.0
+    }
+    
+    // Computed property for completion percentage
+    var completionPercentage: Double {
+        guard !assessments.isEmpty else { return 0.0 }
+        let completedAssessments = assessments.filter { $0.isCompleted }
+        return Double(completedAssessments.count) / Double(assessments.count)
     }
 }

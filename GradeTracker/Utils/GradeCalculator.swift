@@ -165,7 +165,7 @@ struct USGradeCalculator {
 }
 
 struct GradeConverter {
-    static func percentageToLetter(percentage: Double, system: GradingSystem) -> String {
+    static func percentageToLetter(percentage: Double, system: GradeSystem) -> String {
         switch system {
         case .uk:
             return UKGradeCalculator.getShortClassification(from: percentage)
@@ -175,7 +175,7 @@ struct GradeConverter {
         }
     }
     
-    static func percentageToGPA(percentage: Double, system: GradingSystem) -> Double {
+    static func percentageToGPA(percentage: Double, system: GradeSystem) -> Double {
         switch system {
         case .uk:
             return UKGradeCalculator.getGradePoints(from: percentage)
@@ -184,7 +184,7 @@ struct GradeConverter {
         }
     }
     
-    static func normalizeGrade(grade: Double, fromSystem: GradingSystem, toSystem: GradingSystem) -> Double {
+    static func normalizeGrade(grade: Double, fromSystem: GradeSystem, toSystem: GradeSystem) -> Double {
         if fromSystem == toSystem {
             return grade
         }

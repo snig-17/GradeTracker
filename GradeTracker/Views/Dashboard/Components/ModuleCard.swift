@@ -15,7 +15,7 @@ struct ModuleCard: View {
         HStack(spacing: 12) {
             // Module color indicator
             RoundedRectangle(cornerRadius: 4)
-                .fill(Color.moduleColor(for: module.color))
+                .fill(Color(hex: module.colorHex))
                 .frame(width: 4, height: 60)
             
             VStack(alignment: .leading, spacing: 6) {
@@ -24,10 +24,10 @@ struct ModuleCard: View {
                     Text(module.code)
                         .font(.caption)
                         .fontWeight(.semibold)
-                        .foregroundStyle(Color.moduleColor(for: module.color))
+                        .foregroundStyle(Color(hex: module.colorHex))
                         .padding(.horizontal, 6)
                         .padding(.vertical, 2)
-                        .background(Color.moduleColor(for: module.color).opacity(0.1))
+                        .background(Color(hex: module.colorHex).opacity(0.1))
                         .cornerRadius(4)
                     
                     Spacer()
@@ -84,7 +84,7 @@ struct ModuleCard: View {
             // Progress indicator
             CircularProgressView(
                 progress: module.completionPercentage,
-                color: Color.moduleColor(for: module.color)
+                color: Color(hex: module.colorHex)
             )
         }
         .padding(.horizontal, 12)
@@ -147,9 +147,10 @@ struct CircularProgressView: View {
 }
 
 #Preview {
+    let sampleStudent = Student.createSampleStudent()
     VStack(spacing: 12) {
-        ModuleCard(module: Student.sampleStudent.academicYears.first!.modules.first!, systemType: .uk)
-        ModuleCard(module: Student.sampleStudent.academicYears.first!.modules.first!, systemType: .us)
+        ModuleCard(module: sampleStudent.academicYears.first!.modules.first!, systemType: .uk)
+        ModuleCard(module: sampleStudent.academicYears.first!.modules.first!, systemType: .us)
     }
     .padding()
     .background(Color(.systemGroupedBackground))

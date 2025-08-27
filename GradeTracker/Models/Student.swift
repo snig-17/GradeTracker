@@ -110,6 +110,7 @@ class Student {
             startDate: Calendar.current.date(from: DateComponents(year: 2024, month: 9, day: 1)) ?? Date(),
             endDate: Calendar.current.date(from: DateComponents(year: 2025, month: 6, day: 30)) ?? Date(),
             weightingMultiplier: 0.5,
+            level: 2,
             isActive: true
         )
         
@@ -124,7 +125,8 @@ class Student {
             description: "Advanced software engineering principles and practices",
             colorHex: "#007AFF",
             gradeSystem: .uk,
-            isCompleted: false
+            isCompleted: false,
+            isCore: true
         )
         
         let databases = Module(
@@ -137,7 +139,8 @@ class Student {
             description: "Relational database design and SQL programming",
             colorHex: "#34C759",
             gradeSystem: .uk,
-            isCompleted: false
+            isCompleted: false,
+            isCore: true
         )
         
         let algorithms = Module(
@@ -150,7 +153,8 @@ class Student {
             description: "Advanced algorithms and data structure implementation",
             colorHex: "#FF9500",
             gradeSystem: .uk,
-            isCompleted: false
+            isCompleted: false,
+            isCore: false
         )
         
         // Create sample assessments for Software Engineering

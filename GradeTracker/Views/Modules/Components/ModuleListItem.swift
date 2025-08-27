@@ -9,7 +9,7 @@ import SwiftUI
 
 struct ModuleListItem: View {
     let module: Module
-    let systemType: GradingSystem
+    let systemType: GradeSystem
     let onTap: () -> Void
     
     var body: some View {
@@ -24,10 +24,10 @@ struct ModuleListItem: View {
                             Text(module.code)
                                 .font(.caption)
                                 .fontWeight(.semibold)
-                                .foregroundStyle(Color.moduleColor(for: module.color))
+                                .foregroundStyle(Color(hex: module.color))
                                 .padding(.horizontal, 8)
                                 .padding(.vertical, 4)
-                                .background(Color.moduleColor(for: module.color).opacity(0.15))
+                                .background(Color(hex: module.color).opacity(0.15))
                                 .cornerRadius(6)
                             
                             Spacer()
@@ -105,7 +105,7 @@ struct ModuleListItem: View {
                     VStack(spacing: 8) {
                         CircularProgressView(
                             progress: module.completionPercentage,
-                            color: Color.moduleColor(for: module.color)
+                            color: Color(hex: module.color)
                         )
                         
                         Image(systemName: "chevron.right")
@@ -183,7 +183,7 @@ struct AssessmentSummaryBar: View {
     }
     
     private var upcomingCount: Int {
-        module.assessments.filter { !$0.isCompleted && $0.dueDate != nil }.count
+        module.assessments.filter { !$0.isCompleted }.count
     }
     
     private var overdueCount: Int {
@@ -257,9 +257,10 @@ struct AssessmentBadge: View {
 }
 
 #Preview {
+    let sampleStudent = Student.createSampleStudent()
     VStack(spacing: 12) {
         ModuleListItem(
-            module: Student.sampleStudent.academicYears.first!.modules.first!,
+            module: sampleStudent.academicYears.first!.modules.first!,
             systemType: .uk
         ) {
             print("Tapped module")

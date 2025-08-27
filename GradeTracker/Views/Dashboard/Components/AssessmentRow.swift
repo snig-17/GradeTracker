@@ -9,48 +9,53 @@
 import SwiftUI
 
 struct AssessmentRow: View {
-    let title: String
-    let dueDate: Date
-    let isCompleted: Bool
-    let grade: Double?
-    let weighting: Double
-    let color: Color
+    let assessment: Assessment
+    let module: Module
     
     var body: some View {
         HStack(spacing: 12) {
             // Status indicator
             Circle()
-                .fill(isCompleted ? .green :
-                      (dueDate < Date() ? .red : .orange))
+                .fill(assessment.isCompleted ? .green :
+                      (assessment.dueDate < Date() ? .red : .orange))
                 .frame(width: 8, height: 8)
             
             VStack(alignment: .leading, spacing: 2) {
                 HStack {
-                    Text(title)
+                    Text(assessment.title)
                         .font(.subheadline)
                         .fontWeight(.medium)
                         .lineLimit(1)
                     
                     Spacer()
                     
-                    Text("\(Int(weighting))%")
+                    Text("\(Int(assessment.weighting))%")
                         .font(.caption2)
                         .fontWeight(.medium)
                         .foregroundColor(.secondary)
                 }
                 
                 HStack {
-                    Text(dueDate.formatted(date: .abbreviated, time: .omitted))
+                    Text(assessment.dueDate.formatted(date: .abbreviated, time: .omitted))
                         .font(.caption)
                         .foregroundColor(.secondary)
                     
+                    Text("•")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    
+                    Text(module.code)
+                        .font(.caption)
+                        .foregroundColor(Color(hex: module.colorHex))
+                        .fontWeight(.medium)
+                    
                     Spacer()
                     
-                    if let grade = grade {
+                    if let grade = assessment.grade {
                         Text("\(String(format: "%.0f%%", grade))")
                             .font(.caption)
                             .fontWeight(.medium)
-                            .foregroundColor(color)
+                            .foregroundColor(Color(hex: module.colorHex))
                     }
                 }
             }
