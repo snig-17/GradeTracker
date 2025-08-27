@@ -9,7 +9,7 @@ import SwiftUI
 
 struct ModuleCard: View {
     let module: Module
-    let systemType: GradingSystem
+    let systemType: GradeSystem
     
     var body: some View {
         HStack(spacing: 12) {

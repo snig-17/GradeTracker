@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import SwiftData
 
 struct GPAOverviewSection: View {
     let student: Student
@@ -70,26 +71,26 @@ struct GPAOverviewSection: View {
             }
         }
         .padding()
-        .background(Color.cardBackground)
+        .background(Color(.systemBackground))
         .cornerRadius(16)
-        .shadow(color: Color.cardShadow, radius: 8, x: 0, y: 4)
+        .shadow(color: .black.opacity(0.05), radius: 8, x: 0, y: 4)
     }
     
     // MARK: - Computed Properties
     
     private var overallGradeValue: String {
         if student.systemType == .uk {
-            return student.overallGPA > 0 ? "\(student.overallGPA.rounded(to: 1))%" : "N/A"
+            return student.overallGPA > 0 ? String(format: "%.1f%%", student.overallGPA) : "N/A"
         } else {
-            return student.overallGPA > 0 ? student.overallGPA.gpaString : "N/A"
+            return student.overallGPA > 0 ? String(format: "%.2f", student.overallGPA) : "N/A"
         }
     }
     
     private func currentYearGradeValue(_ year: AcademicYear) -> String {
         if student.systemType == .uk {
-            return year.yearGPA > 0 ? "\(year.yearGPA.rounded(to: 1))%" : "N/A"
+            return year.yearGPA > 0 ? String(format: "%.1f%%", year.yearGPA) : "N/A"
         } else {
-            return year.yearGPA > 0 ? year.yearGPA.gpaString : "N/A"
+            return year.yearGPA > 0 ? String(format: "%.2f", year.yearGPA) : "N/A"
         }
     }
     
@@ -97,7 +98,7 @@ struct GPAOverviewSection: View {
         "\(year.completedCredits)/\(year.totalCredits) Credits"
     }
     
-    private func gradeColor(for grade: Double, system: GradingSystem) -> Color {
+    private func gradeColor(for grade: Double, system: GradeSystem) -> Color {
         switch system {
         case .uk:
             switch grade {
@@ -133,10 +134,10 @@ struct GPAOverviewSection: View {
     
     private func currentYearTrend(_ year: AcademicYear) -> TrendDirection? {
         // Calculate trend based on module performance within the year
-        let completedModules = year.modules.filter { $0.finalGrade > 0 }
+        let completedModules = year.modules.filter { $0.currentGrade != nil }
         guard completedModules.count >= 2 else { return nil }
         
-        let averageGrade = completedModules.reduce(0.0) { $0 + $1.finalGrade } / Double(completedModules.count)
+        let averageGrade = completedModules.compactMap { $0.currentGrade }.reduce(0.0, +) / Double(completedModules.count)
         let targetGrade = student.systemType == .uk ? 65.0 : 3.0
         
         if averageGrade > targetGrade + 5 { return .up }
@@ -154,6 +155,21 @@ struct GPACard: View {
     let color: Color
     let trend: TrendDirection?
     let isMain: Bool
+    
+    private var cardSpacing: CGFloat { isMain ? 12 : 8 }
+    private var titleFont: Font { isMain ? .subheadline : .caption }
+    private var valueFont: Font { isMain ? .title : .title2 }
+    private var subtitleFont: Font { isMain ? .caption : .caption2 }
+    private var cardPadding: CGFloat { isMain ? 20 : 16 }
+    
+    private var cardBackground: some View {
+        RoundedRectangle(cornerRadius: 12)
+            .fill(Color(.systemGray6))
+            .overlay(
+                RoundedRectangle(cornerRadius: 12)
+                    .stroke(color.opacity(0.3), lineWidth: isMain ? 2 : 1)
+            )
+    }
     
     var body: some View {
         VStack(alignment: .center, spacing: cardSpacing) {
@@ -189,66 +205,6 @@ struct GPACard: View {
         .padding(cardPadding)
         .background(cardBackground)
         .cornerRadius(12)
-        .overlay(
-            RoundedRectangle(cornerRadius: 12)
-                .stroke(color.opacity(0.3), lineWidth: isMain ? 2 : 1)
-        )
-    }
-    
-    // MARK: - Computed Properties
-    
-    private var cardSpacing: CGFloat {
-        isMain ? 10 : 8
-    }
-    
-    private var titleFont: Font {
-        isMain ? .caption : .caption2
-    }
-    
-    private var valueFont: Font {
-        isMain ? .title : .title2
-    }
-    
-    private var subtitleFont: Font {
-        isMain ? .caption : .caption2
-    }
-    
-    private var cardPadding: CGFloat {
-        isMain ? 16 : 12
-    }
-    
-    private var cardBackground: some View {
-        Group {
-            if isMain {
-                LinearGradient(
-                    colors: [color.opacity(0.15), color.opacity(0.05)],
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
-                )
-            } else {
-                color.opacity(0.1)
-            }
-        }
-    }
-}
-
-enum TrendDirection {
-    case up, down, stable
-    
-    var icon: String {
-        switch self {
-        case .up: return "arrow.up"
-        case .down: return "arrow.down"
-        case .stable: return "minus"
-        }
-    }
-    
-    var color: Color {
-        switch self {
-        case .up: return .green
-        case .down: return .red
-        case .stable: return .secondary
-        }
     }
 }
 
@@ -256,12 +212,10 @@ struct TrendIndicator: View {
     let direction: TrendDirection
     
     var body: some View {
-        Image(systemName: direction.icon)
+        Image(systemName: direction.iconName)
             .font(.caption2)
             .foregroundStyle(direction.color)
-            .padding(4)
-            .background(direction.color.opacity(0.1))
-            .cornerRadius(4)
+            .scaleEffect(0.8)
     }
 }
 
@@ -269,95 +223,71 @@ struct QuickStatsRow: View {
     let student: Student
     
     var body: some View {
-        HStack(spacing: 20) {
+        HStack(spacing: 16) {
             QuickStatItem(
-                icon: "books.vertical",
-                value: "\(totalModules)",
-                label: "Modules",
+                title: "Total Credits",
+                value: "\(student.totalCredits)",
+                icon: "book.stack.fill",
                 color: .blue
             )
             
             QuickStatItem(
-                icon: "doc.text",
-                value: "\(pendingAssessments)",
-                label: "Pending",
+                title: "Completed",
+                value: "\(student.completedCredits)",
+                icon: "checkmark.circle.fill",
+                color: .green
+            )
+            
+            QuickStatItem(
+                title: "Modules",
+                value: "\(student.allModules.count)",
+                icon: "square.grid.3x3.fill",
                 color: .orange
             )
             
             QuickStatItem(
-                icon: "calendar",
-                value: daysToNextDeadline != nil ? "\(daysToNextDeadline!)" : "None",
-                label: "Days Left",
-                color: daysToNextDeadline != nil && daysToNextDeadline! <= 3 ? .red : .green
-            )
-            
-            QuickStatItem(
-                icon: "percent",
-                value: "\(Int(completionPercentage))",
-                label: "Complete",
+                title: "Year",
+                value: currentYearName,
+                icon: "calendar.badge.clock",
                 color: .purple
             )
         }
-        .padding(.vertical, 8)
-        .padding(.horizontal, 12)
-        .background(.secondary.opacity(0.05))
-        .cornerRadius(10)
     }
     
-    private var totalModules: Int {
-        student.academicYears.flatMap { $0.modules }.count
-    }
-    
-    private var pendingAssessments: Int {
-        student.academicYears
-            .flatMap { $0.modules }
-            .flatMap { $0.assessments }
-            .filter { !$0.isCompleted }
-            .count
-    }
-    
-    private var daysToNextDeadline: Int? {
-        let upcomingAssessments = student.academicYears
-            .flatMap { $0.modules }
-            .flatMap { $0.assessments }
-            .filter { !$0.isCompleted && $0.dueDate != nil }
-            .sorted { ($0.dueDate ?? Date.distantFuture) < ($1.dueDate ?? Date.distantFuture) }
-        
-        return upcomingAssessments.first?.daysUntilDue
-    }
-    
-    private var completionPercentage: Double {
-        let allAssessments = student.academicYears
-            .flatMap { $0.modules }
-            .flatMap { $0.assessments }
-        
-        guard !allAssessments.isEmpty else { return 0 }
-        
-        let completedCount = allAssessments.filter { $0.isCompleted }.count
-        return Double(completedCount) / Double(allAssessments.count) * 100
+    private var currentYearName: String {
+        if let currentYear = student.currentAcademicYear {
+            return currentYear.name
+        }
+        return "N/A"
     }
 }
 
 struct QuickStatItem: View {
-    let icon: String
+    let title: String
     let value: String
-    let label: String
+    let icon: String
     let color: Color
     
     var body: some View {
         VStack(spacing: 4) {
-            Image(systemName: icon)
-                .font(.caption)
-                .foregroundStyle(color)
+            Circle()
+                .fill(color.opacity(0.2))
+                .frame(width: 32, height: 32)
+                .overlay(
+                    Image(systemName: icon)
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundStyle(color)
+                )
             
             Text(value)
-                .font(.headline)
+                .font(.caption)
                 .fontWeight(.semibold)
                 .foregroundStyle(.primary)
             
-            Text(label)
+            Text(title)
                 .font(.caption2)
                 .foregroundStyle(.secondary)
+                .lineLimit(1)
         }
         .frame(maxWidth: .infinity)
     }
@@ -369,62 +299,34 @@ struct ProgressIndicatorsRow: View {
     
     var body: some View {
         VStack(spacing: 12) {
-            // Section title
             HStack {
-                Text("Year Progress")
+                Text("Progress")
                     .font(.subheadline)
                     .fontWeight(.medium)
                     .foregroundStyle(.secondary)
-                
                 Spacer()
-                
-                Text("\(Int(yearProgress * 100))% Complete")
-                    .font(.caption)
-                    .fontWeight(.medium)
-                    .foregroundStyle(.blue)
             }
             
-            // Progress bars
             VStack(spacing: 8) {
-                // Credits progress
+                // Credits Progress
                 ProgressBar(
-                    title: "Credits",
+                    title: "Credits Progress",
                     current: currentYear.completedCredits,
                     total: currentYear.totalCredits,
                     color: .blue,
                     suffix: "credits"
                 )
                 
-                // Grade target progress
-                if student.systemType == .uk {
-                    ProgressBar(
-                        title: "Target (65%)",
-                        current: Int(min(currentYear.yearGPA, 65)),
-                        total: 65,
-                        color: currentYear.yearGPA >= 65 ? .green : .orange,
-                        suffix: "%"
-                    )
-                } else {
-                    ProgressBar(
-                        title: "Target (3.0)",
-                        current: Int(min(currentYear.yearGPA * 100 / 4, 75)), // Convert to percentage
-                        total: 75,
-                        color: currentYear.yearGPA >= 3.0 ? .green : .orange,
-                        suffix: "/4.0"
-                    )
-                }
+                // Modules Progress
+                ProgressBar(
+                    title: "Modules Completed",
+                    current: currentYear.completedModules,
+                    total: currentYear.modules.count,
+                    color: .green,
+                    suffix: "modules"
+                )
             }
         }
-        .padding(.vertical, 8)
-        .padding(.horizontal, 12)
-        .background(.secondary.opacity(0.05))
-        .cornerRadius(10)
-    }
-    
-    private var yearProgress: Double {
-        let totalCredits = currentYear.totalCredits
-        let completedCredits = currentYear.completedCredits
-        return totalCredits > 0 ? Double(completedCredits) / Double(totalCredits) : 0
     }
 }
 
@@ -436,39 +338,62 @@ struct ProgressBar: View {
     let suffix: String
     
     private var progress: Double {
-        total > 0 ? Double(current) / Double(total) : 0
+        guard total > 0 else { return 0 }
+        return Double(current) / Double(total)
     }
     
     var body: some View {
-        HStack {
-            Text(title)
-                .font(.caption2)
-                .foregroundStyle(.secondary)
-                .frame(width: 60, alignment: .leading)
-            
-            ZStack(alignment: .leading) {
-                RoundedRectangle(cornerRadius: 4)
-                    .fill(.secondary.opacity(0.2))
-                    .frame(height: 6)
+        VStack(alignment: .leading, spacing: 4) {
+            HStack {
+                Text(title)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
                 
-                RoundedRectangle(cornerRadius: 4)
-                    .fill(color)
-                    .frame(width: max(0, progress * 120), height: 6)
-                    .animation(.easeInOut(duration: 0.5), value: progress)
+                Spacer()
+                
+                Text("\(current)/\(total) \(suffix)")
+                    .font(.caption)
+                    .fontWeight(.medium)
+                    .foregroundStyle(.primary)
             }
-            .frame(width: 120)
             
-            Text("\(current)/\(total) \(suffix)")
-                .font(.caption2)
-                .foregroundStyle(.secondary)
-                .frame(minWidth: 60, alignment: .trailing)
+            GeometryReader { geometry in
+                ZStack(alignment: .leading) {
+                    Rectangle()
+                        .fill(Color(.systemGray5))
+                        .frame(height: 6)
+                        .cornerRadius(3)
+                    
+                    Rectangle()
+                        .fill(color)
+                        .frame(width: geometry.size.width * progress, height: 6)
+                        .cornerRadius(3)
+                        .animation(.easeInOut(duration: 0.5), value: progress)
+                }
+            }
+            .frame(height: 6)
         }
     }
 }
 
-#Preview {
-    GPAOverviewSection(student: Student.sampleStudent)
-        .padding()
-        .background(Color(.systemGroupedBackground))
-}
+// MARK: - Supporting Types
 
+enum TrendDirection {
+    case up, down, stable
+    
+    var iconName: String {
+        switch self {
+        case .up: return "arrow.up.right"
+        case .down: return "arrow.down.right"
+        case .stable: return "minus"
+        }
+    }
+    
+    var color: Color {
+        switch self {
+        case .up: return .green
+        case .down: return .red
+        case .stable: return .gray
+        }
+    }
+}

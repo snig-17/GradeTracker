@@ -58,8 +58,9 @@ struct ModulesView: View {
                 SearchAndFilterBar(
                     searchText: $searchText,
                     selectedSemester: $selectedSemester,
-                    availableSemesters: availableSemesters,
-                    showingFilters: $showingFilters
+                    showingFilters: $showingFilters,
+                    availableSemesters: availableSemesters
+                    
                 )
                 
                 // Module Statistics Cards

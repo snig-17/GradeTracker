@@ -168,6 +168,7 @@ struct ModuleQuickStats: View {
             StatCard(
                 title: module.gradeSystem == .uk ? "Credits" : "Credit Hours",
                 value: "\(module.credits)",
+                subtitle: module.semester, // Added subtitle usage
                 icon: "book.fill",
                 color: .blue
             )
@@ -175,6 +176,7 @@ struct ModuleQuickStats: View {
             StatCard(
                 title: "Semester",
                 value: module.semester,
+                subtitle: module.academicYear, // Added subtitle usage
                 icon: "calendar",
                 color: .green
             )
@@ -182,6 +184,7 @@ struct ModuleQuickStats: View {
             StatCard(
                 title: "Assessments",
                 value: "\(module.assessments.count)",
+                subtitle: module.assessments.isEmpty ? "None yet" : "Total", // Added subtitle usage
                 icon: "doc.text.fill",
                 color: .orange
             )
@@ -189,6 +192,7 @@ struct ModuleQuickStats: View {
             StatCard(
                 title: "Completed",
                 value: "\(module.assessments.filter { $0.isCompleted }.count)",
+                subtitle: "\(module.assessments.count - module.assessments.filter { $0.isCompleted }.count) remaining", // Added subtitle usage
                 icon: "checkmark.circle.fill",
                 color: .purple
             )
@@ -199,8 +203,17 @@ struct ModuleQuickStats: View {
 struct StatCard: View {
     let title: String
     let value: String
+    let subtitle: String?
     let icon: String
     let color: Color
+  
+    init(title: String, value: String, subtitle: String? = nil, icon: String, color: Color) {
+        self.title = title
+        self.value = value
+        self.subtitle = subtitle
+        self.icon = icon
+        self.color = color
+    }
     
     var body: some View {
         VStack(spacing: 8) {
@@ -216,11 +229,24 @@ struct StatCard: View {
                     .fontWeight(.bold)
             }
             
-            HStack {
-                Text(title)
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-                Spacer()
+            VStack(alignment: .leading, spacing: 2) {
+                HStack {
+                    Text(title)
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    Spacer()
+                }
+                
+                // Show subtitle if it exists
+                if let subtitle = subtitle, !subtitle.isEmpty {
+                    HStack {
+                        Text(subtitle)
+                            .font(.caption2)
+                            .foregroundColor(.secondary)
+                            .opacity(0.8)
+                        Spacer()
+                    }
+                }
             }
         }
         .padding()
@@ -265,28 +291,6 @@ struct AssessmentsSection: View {
     }
 }
 
-struct EmptyAssessmentsView: View {
-    var body: some View {
-        VStack(spacing: 12) {
-            Image(systemName: "doc.text.below.ecg")
-                .font(.system(size: 48))
-                .foregroundColor(.secondary)
-            
-            Text("No Assessments")
-                .font(.headline)
-                .foregroundColor(.secondary)
-            
-            Text("Add your first assessment to start tracking your progress")
-                .font(.caption)
-                .foregroundColor(.secondary)
-                .multilineTextAlignment(.center)
-        }
-        .frame(maxWidth: .infinity)
-        .padding(32)
-        .background(Color(.systemGray6))
-        .cornerRadius(12)
-    }
-}
 
 struct AssessmentCard: View {
     let assessment: Assessment
@@ -389,6 +393,7 @@ struct PerformanceChartSection: View {
 }
 
 // MARK: - Module Information Section
+// In your ModuleDetailView.swift - Update the ModuleInformationSection
 struct ModuleInformationSection: View {
     let module: Module
     
@@ -402,14 +407,15 @@ struct ModuleInformationSection: View {
                 InfoRow(title: "Academic Year", value: module.academicYear)
                 InfoRow(title: "Grade System", value: module.gradeSystem == .uk ? "UK System" : "US System")
                 
-                if !module.description.isEmpty {
+                // CHANGED from module.description to module.moduleDescription
+                if !module.moduleDescription.isEmpty {
                     VStack(alignment: .leading, spacing: 8) {
                         Text("Description")
                             .font(.subheadline)
                             .fontWeight(.medium)
                             .foregroundColor(.secondary)
                         
-                        Text(module.description)
+                        Text(module.moduleDescription) // CHANGED
                             .font(.body)
                             .multilineTextAlignment(.leading)
                     }
@@ -421,6 +427,7 @@ struct ModuleInformationSection: View {
         }
     }
 }
+
 
 struct InfoRow: View {
     let title: String
@@ -442,20 +449,40 @@ struct InfoRow: View {
     }
 }
 
-// Placeholder views for the sheets
+// MARK: - Placeholder views for the sheets
 struct EditModuleView: View {
     let module: Module
     @Environment(\.dismiss) private var dismiss
     
     var body: some View {
         NavigationView {
-            Text("Edit Module View")
-                .navigationTitle("Edit Module")
-                .toolbar {
-                    ToolbarItem(placement: .navigationBarLeading) {
-                        Button("Cancel") { dismiss() }
+            Form {
+                Section("Coming Soon") {
+                    VStack(spacing: 16) {
+                        Image(systemName: "hammer.fill")
+                            .font(.system(size: 48))
+                            .foregroundColor(.blue)
+                        
+                        Text("Edit Module")
+                            .font(.headline)
+                            .fontWeight(.bold)
+                        
+                        Text("Module editing functionality will be available soon! For now, you can delete and recreate modules if changes are needed.")
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                            .multilineTextAlignment(.center)
                     }
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 32)
                 }
+            }
+            .navigationTitle("Edit Module")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button("Cancel") { dismiss() }
+                }
+            }
         }
     }
 }
@@ -466,14 +493,33 @@ struct AddAssessmentView: View {
     
     var body: some View {
         NavigationView {
-            Text("Add Assessment View")
-                .navigationTitle("Add Assessment")
-                .toolbar {
-                    ToolbarItem(placement: .navigationBarLeading) {
-                        Button("Cancel") { dismiss() }
+            Form {
+                Section("Coming Soon") {
+                    VStack(spacing: 16) {
+                        Image(systemName: "plus.circle.fill")
+                            .font(.system(size: 48))
+                            .foregroundColor(.green)
+                        
+                        Text("Add Assessment")
+                            .font(.headline)
+                            .fontWeight(.bold)
+                        
+                        Text("Assessment management is coming soon! You'll be able to add exams, coursework, and assignments with due dates and weightings.")
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                            .multilineTextAlignment(.center)
                     }
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 32)
                 }
+            }
+            .navigationTitle("Add Assessment")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button("Cancel") { dismiss() }
+                }
+            }
         }
     }
 }
-

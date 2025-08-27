@@ -5,165 +5,156 @@
 //  Created by Snigdha Tiwari  on 26/08/2025.
 //
 
+// Views/Modules/Components/ModuleStatsSection.swift
 import SwiftUI
 
 struct ModuleStatsSection: View {
-    let student: Student
-    let filteredModules: [Module]
-    
-    var body: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 12) {
-                // Total Modules
-                StatCard(
-                    title: "Total Modules",
-                    value: "\(filteredModules.count)",
-                    subtitle: "Active",
-                    color: .blue,
-                    icon: "books.vertical"
-                )
-                
-                // Average Grade
-                StatCard(
-                    title: student.systemType == .uk ? "Average %" : "Average GPA",
-                    value: averageGradeString,
-                    subtitle: averageGradeClassification,
-                    color: averageGradeColor,
-                    icon: "chart.bar"
-                )
-                
-                // Completed Modules
-                StatCard(
-                    title: "Completed",
-                    value: "\(completedModules)",
-                    subtitle: "\(Int(completionPercentage))%",
-                    color: .green,
-                    icon: "checkmark.circle"
-                )
-                
-                // Total Credits
-                StatCard(
-                    title: "Credits",
-                    value: "\(totalCredits)",
-                    subtitle: "Total",
-                    color: .purple,
-                    icon: "star"
-                )
-            }
-            .padding(.horizontal, 1)
-        }
-    }
-    
-    // MARK: - Computed Properties
-    
-    private var averageGrade: Double {
-        guard !filteredModules.isEmpty else { return 0 }
-        let totalGrade = filteredModules.reduce(0.0) { $0 + $1.finalGrade }
-        return totalGrade / Double(filteredModules.count)
-    }
-    
-    private var averageGradeString: String {
-        if student.systemType == .uk {
-            return "\(averageGrade.rounded(to: 1))%"
-        } else {
-            let gpa = USGradeCalculator.getGradePoints(from: averageGrade)
-            return gpa.gpaString
-        }
-    }
-    
-    private var averageGradeClassification: String {
-        if student.systemType == .uk {
-            return UKGradeCalculator.getShortClassification(from: averageGrade)
-        } else {
-            let gpa = USGradeCalculator.getGradePoints(from: averageGrade)
-            return USGradeCalculator.getGPALetter(from: gpa)
-        }
-    }
-    
-    private var averageGradeColor: Color {
-        if student.systemType == .uk {
-            switch averageGrade {
-            case 70...: return .green
-            case 60..<70: return .blue
-            case 50..<60: return .orange
-            case 40..<50: return .red
-            default: return .gray
-            }
-        } else {
-            let gpa = USGradeCalculator.getGradePoints(from: averageGrade)
-            switch gpa {
-            case 3.5...: return .green
-            case 3.0..<3.5: return .blue
-            case 2.5..<3.0: return .orange
-            case 2.0..<2.5: return .red
-            default: return .gray
-            }
-        }
-    }
+    let modules: [Module]
     
     private var completedModules: Int {
-        filteredModules.filter { $0.isCompleted }.count
+        modules.filter { $0.isCompleted }.count
     }
     
-    private var completionPercentage: Double {
-        guard !filteredModules.isEmpty else { return 0 }
-        return Double(completedModules) / Double(filteredModules.count) * 100
+    private var inProgressModules: Int {
+        modules.filter { !$0.isCompleted }.count
     }
     
     private var totalCredits: Int {
-        filteredModules.reduce(0) { $0 + $1.credits }
+        modules.reduce(0) { $0 + $1.credits }
+    }
+    
+    private var completedCredits: Int {
+        modules.filter { $0.isCompleted }.reduce(0) { $0 + $1.credits }
+    }
+    
+    private var averageGrade: Double? {
+        let gradesWithWeights = modules.compactMap { module -> (Double, Int)? in
+            guard let grade = module.currentGrade else { return nil }
+            return (grade, module.credits)
+        }
+        
+        guard !gradesWithWeights.isEmpty else { return nil }
+        
+        let totalWeightedGrade = gradesWithWeights.reduce(0.0) { $0 + ($1.0 * Double($1.1)) }
+        let totalWeight = gradesWithWeights.reduce(0) { $0 + $1.1 }
+        
+        return totalWeightedGrade / Double(totalWeight)
+    }
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            Text("Overview")
+                .font(.headline)
+                .fontWeight(.bold)
+            
+            LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 2), spacing: 12) {
+                StatsCard(
+                    title: "Total Modules",
+                    value: "\(modules.count)",
+                    subtitle: "\(completedModules) completed",
+                    icon: "book.stack.fill",
+                    color: .blue
+                )
+                
+                StatsCard(
+                    title: "Credits",
+                    value: "\(totalCredits)",
+                    subtitle: "\(completedCredits) earned",
+                    icon: "graduationcap.fill",
+                    color: .green
+                )
+                
+                StatsCard(
+                    title: "In Progress",
+                    value: "\(inProgressModules)",
+                    subtitle: "Active modules",
+                    icon: "clock.fill",
+                    color: .orange
+                )
+                
+                if let avgGrade = averageGrade {
+                    StatsCard(
+                        title: "Average Grade",
+                        value: String(format: "%.1f%%", avgGrade),
+                        subtitle: getGradeBand(for: avgGrade),
+                        icon: "chart.line.uptrend.xyaxis",
+                        color: .purple
+                    )
+                } else {
+                    StatsCard(
+                        title: "Average Grade",
+                        value: "N/A",
+                        subtitle: "No grades yet",
+                        icon: "chart.line.uptrend.xyaxis",
+                        color: .gray
+                    )
+                }
+            }
+        }
+    }
+    
+    private func getGradeBand(for grade: Double) -> String {
+        // Assuming UK system for simplicity
+        if grade >= 70 { return "First Class" }
+        else if grade >= 60 { return "Upper Second" }
+        else if grade >= 50 { return "Lower Second" }
+        else if grade >= 40 { return "Third Class" }
+        else { return "Below Pass" }
     }
 }
 
-struct StatCard: View {
+struct StatsCard: View {
     let title: String
     let value: String
     let subtitle: String
-    let color: Color
     let icon: String
+    let color: Color
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(spacing: 12) {
             HStack {
-                Image(systemName: icon)
-                    .foregroundStyle(color)
-                    .font(.headline)
+                Circle()
+                    .fill(color.opacity(0.2))
+                    .frame(width: 32, height: 32)
+                    .overlay(
+                        Image(systemName: icon)
+                            .foregroundColor(color)
+                            .font(.system(size: 14, weight: .semibold))
+                    )
                 
                 Spacer()
                 
-                Text(value)
-                    .font(.title2)
-                    .fontWeight(.bold)
-                    .foregroundStyle(color)
+                VStack(alignment: .trailing, spacing: 2) {
+                    Text(value)
+                        .font(.title3)
+                        .fontWeight(.bold)
+                        .foregroundColor(.primary)
+                    
+                    Text(subtitle)
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                        .multilineTextAlignment(.trailing)
+                }
             }
             
-            VStack(alignment: .leading, spacing: 2) {
+            HStack {
                 Text(title)
-                    .font(.caption)
+                    .font(.subheadline)
                     .fontWeight(.medium)
-                    .foregroundStyle(.primary)
-                
-                Text(subtitle)
-                    .font(.caption2)
-                    .foregroundStyle(.secondary)
+                    .foregroundColor(.secondary)
+                Spacer()
             }
         }
-        .padding()
-        .frame(width: 120, height: 80)
-        .background(color.opacity(0.1))
-        .cornerRadius(12)
+        .padding(12)
+        .background(
+            RoundedRectangle(cornerRadius: 12)
+                .fill(Color(.systemBackground))
+                .shadow(color: .black.opacity(0.05), radius: 2, x: 0, y: 1)
+        )
         .overlay(
             RoundedRectangle(cornerRadius: 12)
-                .stroke(color.opacity(0.3), lineWidth: 1)
+                .stroke(color.opacity(0.1), lineWidth: 1)
         )
     }
-}
-
-#Preview {
-    ModuleStatsSection(
-        student: Student.sampleStudent,
-        filteredModules: Student.sampleStudent.academicYears.first?.modules ?? []
-    )
-    .padding()
 }
 
