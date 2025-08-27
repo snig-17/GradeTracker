@@ -47,14 +47,15 @@ class Module {
         let completedAssessments = assessments.filter { $0.grade != nil }
         guard !completedAssessments.isEmpty else { return nil }
         
-        let totalWeighting = completedAssessments.reduce(0) { $0 + $1.weighting }
-        guard totalWeighting > 0 else { return nil }
+        let completedWeighting = completedAssessments.reduce(0) { $0 + $1.weighting }
+        guard completedWeighting > 0 else { return nil }
         
         let weightedSum = completedAssessments.reduce(0) { sum, assessment in
-            return sum + (assessment.grade! * assessment.weighting)
+            return sum + (assessment.grade! * (assessment.weighting / 100.0))
         }
         
-        return weightedSum / totalWeighting
+        // Return the weighted average of completed assessments
+        return (weightedSum / (completedWeighting / 100.0))
     }
     
     // Computed property for completion status
